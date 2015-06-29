@@ -28,7 +28,7 @@ func (p *SSHPlugin) GetMetadata() plugin.PluginMetadata {
 		Version: plugin.VersionType{
 			Major: 0,
 			Minor: 1,
-			Build: 2,
+			Build: 3,
 		},
 		Commands: []plugin.Command{
 			{
@@ -36,6 +36,13 @@ func (p *SSHPlugin) GetMetadata() plugin.PluginMetadata {
 				HelpText: "ssh to an application container instance",
 				UsageDetails: plugin.Usage{
 					Usage: options.SSHUsage(),
+				},
+			},
+			{
+				Name:     "scp",
+				HelpText: "ssh to an application container instance",
+				UsageDetails: plugin.Usage{
+					Usage: options.SCPUsage(),
 				},
 			},
 			{
@@ -92,36 +99,54 @@ func (p *SSHPlugin) Run(cli plugin.CliConnection, args []string) {
 	switch args[0] {
 	case "CLI-MESSAGE-UNINSTALL":
 		return
+
 	case "enable-ssh":
 		err := cmd.EnableSSH(args, appFactory)
 		if err != nil {
 			p.Fatal(err)
 		}
+
 	case "disable-ssh":
 		err := cmd.DisableSSH(args, appFactory)
 		if err != nil {
 			p.Fatal(err)
 		}
+
 	case "ssh-enabled":
 		err := cmd.SSHEnabled(args, appFactory, p.OutputWriter)
 		if err != nil {
 			p.Fatal(err)
 		}
+
 	case "allow-space-ssh":
 		err := cmd.AllowSSH(args, spaceFactory)
 		if err != nil {
 			p.Fatal(err)
 		}
+
 	case "disallow-space-ssh":
 		err := cmd.DisallowSSH(args, spaceFactory)
 		if err != nil {
 			p.Fatal(err)
 		}
+
 	case "space-ssh-allowed":
 		err := cmd.SSHAllowed(args, spaceFactory, p.OutputWriter)
 		if err != nil {
 			p.Fatal(err)
 		}
+
+	case "scp":
+		opts := options.NewSCPOptions()
+		err := opts.Parse(args)
+		if err != nil {
+			p.Fail(err.Error())
+			fmt.Fprintf(p.OutputWriter, options.SSHUsage())
+			return
+		}
+
+		err := cmd.SCP(opts)
+
 	case "ssh":
 		opts := options.NewSSHOptions()
 		err := opts.Parse(args)
