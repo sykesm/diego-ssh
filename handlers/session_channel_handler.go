@@ -313,10 +313,6 @@ func (sess *session) handleSubsystemRequest(request *ssh.Request) {
 		return
 	}
 
-	if request.WantReply {
-		request.Reply(true, nil)
-	}
-
 	sftpServer, err := sftp.NewServer(
 		sess.channel,
 		sess.channel,
@@ -326,12 +322,23 @@ func (sess *session) handleSubsystemRequest(request *ssh.Request) {
 		os.Getenv("HOME"),
 	)
 
-	logger.Info("starting-server")
+	if err != nil {
+		logger.Error("sftp-new-server-failed", err)
+		if request.WantReply {
+			request.Reply(false, nil)
+		}
+		return
+	}
+
+	if request.WantReply {
+		request.Reply(true, nil)
+	}
+
 	go func() {
 		defer sess.destroy()
 		err = sftpServer.Serve()
 		if err != nil {
-			logger.Error("sftp-serve-error", err)
+			logger.Error("sftp-serve-failed", err)
 		}
 	}()
 }

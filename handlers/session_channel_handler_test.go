@@ -920,6 +920,18 @@ var _ = Describe("SessionChannelHandler", func() {
 			Expect(err).To(HaveOccurred())
 			Expect(os.IsNotExist(err)).To(BeTrue())
 		})
+
+		PIt("sets the sftp server working directory to $HOME", func() {
+			sftp, err := sftp.NewClient(client)
+			Expect(err).NotTo(HaveOccurred())
+			defer sftp.Close()
+
+			home := os.Getenv("HOME")
+
+			cwd, err := sftp.Getwd()
+			Expect(err).NotTo(HaveOccurred())
+			Expect(cwd).To(Equal(home))
+		})
 	})
 
 	Describe("invalid session channel requests", func() {
